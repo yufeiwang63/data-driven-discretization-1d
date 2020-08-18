@@ -6,7 +6,7 @@ import numpy as np
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
-input_path = 'data/burgers/data_burgers.h5'
+input_path = 'data/8-15/2-eta'
 
 with utils.read_h5py(input_path) as f:
     snapshots = f['v'][...]
@@ -23,7 +23,7 @@ print("equation kwargs: ")
 print("=" * 50)
 print(type(equation_kwargs))
 print(equation_kwargs)
-exit()
+# exit()
 
 x_grid = np.linspace(0, 2, 2000)
 fig, ax = plt.subplots(1, 1, figsize=(10, 5))

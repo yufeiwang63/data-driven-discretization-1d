@@ -36,7 +36,6 @@ from typing import Any, Dict, List, Tuple, Type, Union
 from pde_superresolution import equations
 from pde_superresolution import model
 
-
 def create_hparams(equation: str, **kwargs: Any) -> tf.contrib.training.HParams:
   """Create default hyper-parameters for training a model.
 
@@ -128,7 +127,7 @@ def create_hparams(equation: str, **kwargs: Any) -> tf.contrib.training.HParams:
       conservative=True,
       numerical_flux=False,
       equation_kwargs='{}',
-      resample_factor=4,
+      resample_factor=20, #4,
       # neural network parameters
       model_target='coefficients',
       num_layers=3,
@@ -521,7 +520,7 @@ class SaveAtEnd(tf.train.SessionRunHook):
 
 
 def checkpoint_dir_to_path(checkpoint_dir: str) -> str:
-  return os.path.join(checkpoint_dir, 'model.ckpt')
+  return os.path.join(checkpoint_dir, 'model.ckpt-28513')
 
 
 def save_summaries(metrics: Dict[str, float],
@@ -628,6 +627,12 @@ def training_loop(snapshots: np.ndarray,
           train_metrics = calculate_metrics(train_inference_data, equation_type)
           test_metrics = calculate_metrics(test_inference_data, equation_type)
           logged_metrics.append((step, test_metrics, train_metrics))
+          
+          print()
+          print("step {}".format(step))
+          print("train metrics: ", train_metrics)
+          print("test metrics: ", test_metrics)
+          print()
 
           logging.info(metrics_one_linear(test_metrics))
           save_summaries(test_metrics, test_writer, global_step=step)

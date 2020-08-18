@@ -726,6 +726,8 @@ def abs_and_rel_error(predictions: T,
     labels = labels[..., 1:]
   elif duckarray.get_shape(baseline)[-1] > duckarray.get_shape(labels)[-1]:
     labels = tf.concat([labels[..., :1], labels], axis=-1)
+  print('labels shape: ', labels.shape)
+  print('predictions shape: ', predictions.shape)
   model_error = (labels - predictions) ** 2
   baseline_error = (labels - baseline) ** 2
   relative_error = model_error / (baseline_error + error_floor)

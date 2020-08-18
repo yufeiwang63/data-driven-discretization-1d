@@ -150,6 +150,7 @@ def resample_mean(inputs: T, factor: int, axis: int = -1) -> T:
   Raises:
     ValueError: if x is not evenly divided by factor.
   """
+
   shape = get_shape(inputs)
   axis = _normalize_axis(axis, len(shape))
   if shape[axis] % factor:
@@ -177,6 +178,7 @@ def subsample(inputs: T, factor: int, axis: int = -1) -> T:
   Raises:
     ValueError: if x is not evenly divided by factor.
   """
+
   shape = get_shape(inputs)
   axis = _normalize_axis(axis, len(shape))
   if shape[axis] % factor:

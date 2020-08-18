@@ -20,6 +20,9 @@ from __future__ import print_function
 import json
 import os.path
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
+
 from absl import app
 from absl import flags
 from absl import logging
@@ -42,7 +45,7 @@ flags.DEFINE_string(
     'input_path', None,
     'Path to HDF5 file with input data.')
 flags.DEFINE_enum(
-    'equation', None, list(equations.EQUATION_TYPES),
+    'equation', 'burgers', list(equations.EQUATION_TYPES),
     'Equation to integrate.')
 flags.DEFINE_string(
     'hparams', '',

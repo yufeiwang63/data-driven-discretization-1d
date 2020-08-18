@@ -47,7 +47,8 @@ flags.DEFINE_enum(
     'equation_name', 'burgers', list(equations.CONSERVATIVE_EQUATION_TYPES),
     'Equation to integrate.', allow_override=True)
 flags.DEFINE_string(
-    'equation_kwargs', '{"num_points": 400}',
+    # 'equation_kwargs', '{"num_points": 100}',
+    'equation_kwargs', '{"num_points": 2000, "eta": 0.04}',
     'Parameters to pass to the equation constructor.', allow_override=True)
 flags.DEFINE_integer(
     'num_tasks', 10,
