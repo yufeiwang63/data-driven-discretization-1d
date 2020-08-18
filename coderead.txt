@@ -1,0 +1,62 @@
+2020-8-16 update:
+I wrapped a script scripts/train_and_show.py that performs the training and show the trained model.
+Another script scripts/repeat_notebook.py that repeats the content in the notebook burgers-super-resolution.ipynb
+But you still need to first generate the data used for training, see instructions below.
+
+1. to create data for training
+if you want to change some equation_kwargs like eta, num_points, see create_training_data.py
+python pde_superresolution/scripts/create_training_data.py --output_path='./data/8-15/1' --time_max=0.5 --time_delta=0.002 --num_tasks=1
+
+2. test the created training data:
+python tests/test_input_data.py
+
+3. to train and show:
+python scripts/train_and_show.py
+
+
+To test the code in our setting:
+
+modify 
+- initial conditions: equations.py, class BurgersEquation, line 261 initial_value
+- remove viscosity: equations.py, class BurgersEquation, set $eta$ = 0
+- num_points: equations.py, class BurgersEquation, $num_points$ and $resample_factor$.
+    - num_points = 100
+    - resample_factor = 20 (coarse 0.02, fine 0.001)
+- period: equations.py, class BurgersEquation, $period$
+    - change to be [-1, 1]
+
+TODO:
+- how to train on different initial conditions?
+
+workflow:
+- generate the new input training data file
+    - see create_training_data.py
+    - change the equation params as above
+    - make sure we use the conservative version of Burgers (not sure)
+    - change the equation_kwargs in create_training_data.py to {"num_points": 2000}
+    - e.g., python pde_superresolution/scripts/create_training_data.py --output_path='./data/8-15/1' --time_max=0.5 --time_delta=0.002 --num_tasks=1
+    - test the created data:
+        python tests/test_input_data.py
+- train with the generated input training data file
+    - see run_training.py
+    - e.g., python pde_superresolution/scripts/run_training.py --input_path='./data/8-15/1' --checkpoint_dir='./data/8-15-train/'
+    - I am prinint out the train_metrics and test_metrics. They record the relative error of the learned neural network compared with the simple baseline. 
+- generate the exact solution needed for evluation
+    - using create_exact_data.py
+- evaluate the trained model
+    - see run_evaluation.py, with the trained model, and exact solution file
+- use test_exact_solution to make animations of the performance of the trained model. 
+
+
+running command:
+1. to create data for training
+if you want to change some equation_kwargs like eta, num_points, see create_training_data.py
+python pde_superresolution/scripts/create_training_data.py --output_path='./data/8-15/1' --time_max=0.5 --time_delta=0.002 --num_tasks=1
+
+2. test the created training data:
+python tests/test_input_data.py
+
+3. train using the created data
+if you want to change the resample factor, you can pass it as an args to run_training.py (see run_training.py, hparams),
+or you can also directly modify it in the default training parameter in func create_hparams in training.py
+python pde_superresolution/scripts/run_training.py --input_path='./data/8-15/1' --checkpoint_dir='./data/8-15-train/'
