@@ -95,63 +95,91 @@ def compute_error(corase, precise, dx, precise_dx, dt, precise_dt):
 
 
 model_path = 'data/burgers-checkpoints-paper-data/model.ckpt-40000'
-# with h5py.File('data/burgers.h5') as f:
-#     snapshots = f['v'][...]
-#     equation_kwargs = {k: v.item() for k, v in f.attrs.items()}
-
-# equation_kwargs['eta'] = 0.0
-# print(equation_kwargs)
 equation_kwargs = {}
 equation_kwargs['num_points'] = 2000
 equation_kwargs['eta'] = 0.0
 equation_kwargs['k_min'] = 3
 equation_kwargs['k_max'] = 6
-# exit()
+precise_dx = 0.001
 
-
-init_data_path = '/media/yufei/drive2/yufei_data/RLPDE-new/RLPDE-v4/data/local/solutions/8-14-50'
-all_files_unfiltered = os.listdir(init_data_path)
-all_files = []
-for x in all_files_unfiltered:
-    if '.pkl' in x:
-        all_files.append(x)
+dt_list = [0.02, 0.04, 0.05]
+dx_list = [0.02, 0.04, 0.05]
+l3d_mean_errors = np.zeros((len(dt_list), len(dx_list)))
+l3d_all_errors = []
 
 for eta in [0]:
-    for resample_factor in [8, 16]:
+    if eta == 0:
+        init_data_path = '/media/yufei/drive2/yufei_data/RLPDE-new/RLPDE-v4/data/local/solutions/8-14-50'
+    else:
+        init_data_path = '/media/yufei/drive2/yufei_data/RLPDE-new/RLPDE-v4/data/local/solutions/9-8-50-eta-{}'.format(eta)
 
-        equation_kwargs['eta'] = eta
-        hparams = pde.training.create_hparams(
-            equation='burgers',
-            conservative=True,
-            resample_factor=resample_factor,
-            equation_kwargs=json.dumps(equation_kwargs)
-        )
+    all_files_unfiltered = os.listdir(init_data_path)
+    all_files = []
+    for x in all_files_unfiltered:
+        if '.pkl' in x:
+            all_files.append(x)
+    all_files.sort()
 
-        for idx in range(2, 3):
-            init_file = all_files[idx]
-            print(init_file)
-            data = torch.load(os.path.join(init_data_path, init_file))
-            a, b, c, d, e = data['a'], data['b'], data['c'], data['d'], data['e']
-            precise_solution = data['precise_solution']
-            args = data['args']
-            dt = args.dx * args.cfl
-            T = args.T
+    for t_idx, dt in enumerate(dt_list):
+        for x_idx, dx in enumerate(dx_list):
+            resample_factor = int(dx / precise_dx)
 
-            num = equation_kwargs['num_points'] // resample_factor # grid point num
-            solution_x = np.linspace(0, 2, num) # solution period
-            y0 = a + b * np.sin(c * np.pi * solution_x) + d * np.cos(e * np.pi * solution_x)
-            times = np.arange(0, T, dt) # integration time
-            differentiator = ModelDifferentiator(num, hparams, model_path)
-            solution_model, num_evals_model = pde.integrate.odeint(
-                y0, differentiator, times, method='RK23')
+            equation_kwargs['eta'] = eta
+            hparams = pde.training.create_hparams(
+                equation='burgers',
+                conservative=True,
+                resample_factor=resample_factor,
+                equation_kwargs=json.dumps(equation_kwargs)
+            )
 
-            error = compute_error(solution_model, precise_solution, 2 / 31, args.precise_dx, dt, args.precise_dx * args.cfl)
-            print(f"init {init_file} error {error}")
-            # make_animation(save_path='data/notion_demonstration', 
-            #     save_name='{}-{}-{}.mp4'.format(idx, equation_kwargs['eta'], resample_factor),
-            #     precise_solution=precise_solution,
-            #     args=args)
-            make_animation(save_path='data/notion_demonstration', 
-                save_name='{}-{}-{}.mp4'.format(idx, equation_kwargs['eta'], resample_factor),
-                precise_solution=precise_solution,
-                args=args)
+            errors = []
+            for idx in range(len(all_files) // 2, len(all_files)):
+                init_file = all_files[idx]
+                print(init_file)
+                data = torch.load(os.path.join(init_data_path, init_file))
+                a, b, c, d, e = data['a'], data['b'], data['c'], data['d'], data['e']
+                precise_solution = data['precise_solution']
+                args = data['args']
+                dt = args.dx * args.cfl
+                T = args.T
+
+                num = equation_kwargs['num_points'] // resample_factor # grid point num
+                solution_x = np.linspace(0, 2, num) # solution period
+                y0 = a + b * np.sin(c * np.pi * solution_x) + d * np.cos(e * np.pi * solution_x)
+                times = np.arange(0, T, dt) # integration time
+                differentiator = ModelDifferentiator(num, hparams, model_path)
+                solution_model, num_evals_model = pde.integrate.odeint(
+                    y0, differentiator, times, method='RK23')
+
+                error = compute_error(solution_model, precise_solution, 2 / 31, args.precise_dx, dt, args.precise_dx * args.cfl)
+                print(f"init {init_file} error {error}")
+
+                errors.append(error)
+
+                # make_animation(save_path='data/notion_demonstration', 
+                #     save_name='{}-{}-{}.mp4'.format(idx, equation_kwargs['eta'], resample_factor),
+                #     precise_solution=precise_solution,
+                #     args=args)
+                # make_animation(save_path='data/notion_demonstration', 
+                #     save_name='{}-{}-{}.mp4'.format(idx, equation_kwargs['eta'], resample_factor),
+                #     precise_solution=precise_solution,
+                #     args=args)
+
+            l3d_all_errors.append(errors)
+            l3d_mean_errors[t_idx][x_idx] = np.mean(errors)
+
+data_dict = {
+    'dt_list': dt_list,
+    'dx_list': dx_list,
+    'all_errors_l3d': l3d_all_errors,
+    'mean_errors_l3d': l3d_mean_errors,
+}
+
+torch.save(data_dict, 'data/ComPhy/l3d_error_{}.pkl'.format(eta))
+
+# for t_idx, dt in enumerate(dt_list):
+#     print(dt, end=' ')
+#     for x_idx, dx in enumerate(dx_list):
+#         l3d_error = round(l3d_mean_errors[t_idx][x_idx] * 100, 2)
+#         print("\& {} \& {}".format(l3d_error, weno_error), end=' ')
+#     print('\\\hline')
