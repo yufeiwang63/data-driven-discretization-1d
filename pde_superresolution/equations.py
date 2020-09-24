@@ -242,11 +242,11 @@ class BurgersEquation(Equation):
   DERIVATIVE_ORDERS = (1, 2)
 
   def __init__(self,
-               num_points: int = 100,
-               resample_factor: int = 1, #1,
-               period: float = 2, #2 * np.pi,
+               num_points: int,
+               resample_factor: int = 1,
+               period: float = 2 * np.pi,
                random_seed: int = 0,
-               eta: float = 0, #0.04,
+               eta: float = 0.04,
                k_min: int = 1,
                k_max: int = 3,
               ):
@@ -260,7 +260,6 @@ class BurgersEquation(Equation):
 
   def initial_value(self) -> np.ndarray:
     return np.zeros_like(self.grid.solution_x)
-    # return 0.5 + np.sin(2 * np.pi * self.grid.solution_x)
 
   @property
   def time_step(self) -> float:

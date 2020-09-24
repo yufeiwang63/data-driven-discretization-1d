@@ -45,7 +45,7 @@ flags.DEFINE_string(
     'input_path', None,
     'Path to HDF5 file with input data.')
 flags.DEFINE_enum(
-    'equation', 'burgers', list(equations.EQUATION_TYPES),
+    'equation', None, list(equations.EQUATION_TYPES),
     'Equation to integrate.')
 flags.DEFINE_string(
     'hparams', '',

@@ -127,7 +127,7 @@ def create_hparams(equation: str, **kwargs: Any) -> tf.contrib.training.HParams:
       conservative=True,
       numerical_flux=False,
       equation_kwargs='{}',
-      resample_factor=20, #4,
+      resample_factor=4,
       # neural network parameters
       model_target='coefficients',
       num_layers=3,
@@ -520,7 +520,7 @@ class SaveAtEnd(tf.train.SessionRunHook):
 
 
 def checkpoint_dir_to_path(checkpoint_dir: str) -> str:
-  return os.path.join(checkpoint_dir, 'model.ckpt-28513')
+  return os.path.join(checkpoint_dir, 'model.ckpt')
 
 
 def save_summaries(metrics: Dict[str, float],
